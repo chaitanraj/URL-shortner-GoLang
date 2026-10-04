@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -41,7 +42,7 @@ func generateShortURL(OriginalURL string) string{
 	return "https://github.com/chaitanraj"
 }
 
-func storeURL(originalURL string) string{
+func createURL(originalURL string) string{
 	shortURL := generateShortURL(originalURL)
 	id := shortURL //use ths short url as id for simplicity
 
@@ -64,16 +65,42 @@ func getURL(id string)(URL, error){
 }
 
 func handler(w http.ResponseWriter, r *http.Request){
-	fmt.Println("Get Method")
+	fmt.Fprintf(w,"URL Shortner is live")
+}
+
+func shortenURLHandler(w http.ResponseWriter, r *http.Request){
+	var data struct {
+		URL string `json:"url"`
+	}
+	err := json.NewDecoder(r.Body).Decode(&data)
+	if (err != nil){
+		http.Error(w,"Invalid Request body", http.StatusBadRequest)
+		return
+	}
+
+	shortURL := createURL(data.URL);
+	// fmt.Fprintf(w,shortURL);
+	response := struct {
+		ShortURL string `json:"short_url"`
+	}{ShortURL: shortURL}
+
+	w.Header().Set("Content-Type","application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
+func redirectURLHandler(w http.ResponseWriter , r *http.Request){
+	
+
 }
 
 func main(){
 	fmt.Println("Url shortner listening");
 	
-	OriginalURL := "https://github.com/chaitanraj"
-	generateShortURL(OriginalURL) 
+	// OriginalURL := "https://github.com/chaitanraj"
+	// generateShortURL(OriginalURL) 
 	// Register handle fn to handle all request in root url
 	http.HandleFunc("/",handler)
+	http.HandleFunc("/shorten",shortenURLHandler)
 	// Starting server
 	fmt.Println("Server Started on Port 3000")
 	err := http.ListenAndServe(":3000", nil)
