@@ -5,6 +5,8 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"net/http"
+
 	// "net/http"
 	"time"
 )
@@ -58,12 +60,25 @@ func getURL(id string)(URL, error){
 	if(!ok){
 		return URL{} , errors.New("URL not found")
 	}
+	return url,nil
+}
+
+func handler(w http.ResponseWriter, r *http.Request){
+	fmt.Println("Get Method")
 }
 
 func main(){
 	fmt.Println("Url shortner listening");
-	// http.ListenAndServe(":9999",nil);
+	
 	OriginalURL := "https://github.com/chaitanraj"
-	generateShortURL(OriginalURL)
+	generateShortURL(OriginalURL) 
+	// Register handle fn to handle all request in root url
+	http.HandleFunc("/",handler)
+	// Starting server
+	fmt.Println("Server Started on Port 3000")
+	err := http.ListenAndServe(":3000", nil)
+	if(err != nil){
+		fmt.Println("Error on starting server: ", err)
+	}
 
-}
+} 
