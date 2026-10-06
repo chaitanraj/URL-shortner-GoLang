@@ -39,7 +39,7 @@ func generateShortURL(OriginalURL string) string{
 	hash := hex.EncodeToString(data)
 	fmt.Println("EncodeToString: ", hash)
 	fmt.Println("final String: ", hash[:8])
-	return "https://github.com/chaitanraj"
+	return hash[:8]
 }
 
 func createURL(originalURL string) string{
@@ -89,7 +89,7 @@ func shortenURLHandler(w http.ResponseWriter, r *http.Request){
 }
 
 func redirectURLHandler(w http.ResponseWriter , r *http.Request){
-	id := r.URL.Path[len("/redirect/")]
+	id := r.URL.Path[len("/redirect/"):]
 	url,err:=getURL(id);
 	if err != nil{
 		http.Error(w,"Invalid request",http.StatusNotFound)
@@ -106,6 +106,7 @@ func main(){
 	// Register handle fn to handle all request in root url
 	http.HandleFunc("/",handler)
 	http.HandleFunc("/shorten",shortenURLHandler)
+	http.HandleFunc("/redirect/", redirectURLHandler)
 	// Starting server
 	fmt.Println("Server Started on Port 3000")
 	err := http.ListenAndServe(":3000", nil)
